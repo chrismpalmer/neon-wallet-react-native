@@ -3,7 +3,7 @@ let my_store = null
 
 function listener() {
     let network = my_store.getState().network.net
-    rpcUrl = network === 'MainNet' ? 'http://api.wallet.cityofzion.io' : 'http://testnet-api.wallet.cityofzion.io'
+    rpcUrl = network === 'MainNet' ? 'https://neoscan-privnet.ngrok.io' : 'https://neoscan-privnet.ngrok.io'
 }
 
 const request = function(url, options = {}, ignore_base_url = false) {

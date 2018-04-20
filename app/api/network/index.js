@@ -10,17 +10,28 @@ import { getTokenBalanceScript, buildInvocationTransactionData } from '../crypto
 import { reverse } from '../crypto/utils'
 
 export function getBalance(address) {
-    var path = '/v2/address/balance/' + address
+    var path = '/api/main_net/v1/get_balance/' + address
+
+    function findAsset(balance,asset) {
+        var token = balance.find((item) => {
+            return item.asset === asset;
+        });
+        token = token==null?{amount:0,unspent:[]}:token;
+        return token;
+    }
+
     return request(path).then(response => {
         try {
-            const neo = response.NEO
-            const gas = response.GAS
+            console.log('in get balance');
+            var balance = response.balance;
+            var neo = findAsset(balance,'NEO')
+            var gas = findAsset(balance,'GAS');
 
-            if (neo.balance == undefined || gas.balance == undefined || neo.unspent == undefined || gas.unspent == undefined) {
+            if (neo.amount == undefined || gas.amount == undefined || neo.unspent == undefined || gas.unspent == undefined) {
                 throw new TypeError()
             }
 
-            return { Neo: neo.balance, Gas: gas.balance, unspent: { Neo: neo.unspent, Gas: gas.unspent } }
+            return { Neo: neo.amount, Gas: gas.amount, unspent: { Neo: neo.unspent, Gas: gas.unspent } }
         } catch (error) {
             if (error instanceof TypeError) {
                 throw new Error('Return data malformed')
@@ -32,9 +43,9 @@ export function getBalance(address) {
 }
 
 export function getWalletDBHeight() {
-    var path = '/v2/block/height'
+    var path = '/api/main_net/v1/get_height'
     return request(path).then(response => {
-        let height = parseInt(response.block_height)
+        let height = parseInt(response.height)
         if (isNaN(height)) {
             throw new Error('Return data malformed')
         }
@@ -44,13 +55,14 @@ export function getWalletDBHeight() {
 }
 
 export function getTransactionHistory(address) {
-    var path = '/v2/address/history/' + address
+    var path = '/api/main_net/v1/get_claimed/' + address
     return request(path).then(response => {
         try {
-            if (response.history == undefined || !(response.history instanceof Array)) {
+            console.log('get trans history');
+            if (response.claimed == undefined || !(response.claimed instanceof Array)) {
                 throw new TypeError()
             }
-            if (response.history) return response.history
+            if (response.claimed) return response.claimed
         } catch (error) {
             if (error instanceof TypeError) {
                 throw new Error('Return data malformed')
@@ -62,10 +74,10 @@ export function getTransactionHistory(address) {
 }
 
 export function getClaimAmounts(address) {
-    var path = '/v2/address/claims/' + address
+    var path = '/api/main_net/v1/get_claimable/' + address
     return request(path).then(response => {
-        let available = parseInt(response.total_claim)
-        let unavailable = parseInt(response.total_unspent_claim)
+        let available = parseInt(response.unclaimed)
+        let unavailable = 0;//parseInt(response.total_unspent_claim)
 
         if (isNaN(available) || isNaN(unavailable)) {
             throw new Error('Return data malformed')
@@ -112,33 +124,34 @@ export function sendAsset(destinationAddress, WIF, assetType, amount) {
 }
 
 function getRPCEndpoint() {
-    var path = '/v2/network/best_node'
-
-    return request(path).then(response => {
-        return response.node
-    })
+    return 'https://neo-privnet-rpc.ngrok.io';
+    // var path = '/v2/network/best_node'
+    //
+    // return request(path).then(response => {
+    //     return response.node
+    // })
 }
 
 export const queryRPC = (method, params, id = 1) => {
     const jsonRpcData = { method, params, id, jsonrpc: '2.0' }
-    return getRPCEndpoint().then(rpcEndpoint => {
-        var options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(jsonRpcData)
-        }
-        return request(rpcEndpoint, options, true).then(response => {
-            return response
-        })
+    console.log(jsonRpcData);
+    var rpcEndpoint = getRPCEndpoint();
+    var options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonRpcData)
+    }
+    return request(rpcEndpoint, options, true).then(response => {
+        return response
     })
 }
 
 export function claimAllGAS(fromWif) {
     const account = getAccountFromWIF(fromWif)
 
-    var path = '/v2/address/claims/' + account.address
+    var path = '/api/main_net/v1/get_claimable/' + account.address
     return request(path).then(response => {
         const claims = response['claims']
         const totalClaim = response['total_claim']
