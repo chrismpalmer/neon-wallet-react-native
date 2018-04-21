@@ -4,7 +4,7 @@ import {
     buildContractTransactionData,
     buildClaimTransactionData,
     buildRawTransaction,
-    signTransactionData
+    signTransactionData, createSignatureScript, getHash
 } from '../crypto'
 import { getTokenBalanceScript, buildInvocationTransactionData } from '../crypto/nep5'
 import { reverse } from '../crypto/utils'
@@ -55,14 +55,12 @@ export function getWalletDBHeight() {
 }
 
 export function getTransactionHistory(address) {
-    var path = '/api/main_net/v1/get_claimed/' + address
+    var path = '/api/main_net/v1/get_address_neon/' + address
     return request(path).then(response => {
         try {
             console.log('get trans history');
-            if (response.claimed == undefined || !(response.claimed instanceof Array)) {
-                throw new TypeError()
-            }
-            if (response.claimed) return response.claimed
+            console.log(`Retrieved History for ${address} from neoscan`);
+            return parseTxHistory(response.txids);
         } catch (error) {
             if (error instanceof TypeError) {
                 throw new Error('Return data malformed')
@@ -71,6 +69,53 @@ export function getTransactionHistory(address) {
             }
         }
     })
+}
+
+export const ASSETS = {
+    NEO: 'NEO',
+    'c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b': 'NEO',
+    GAS: 'GAS',
+    '602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7': 'GAS'
+}
+
+export const ASSET_ID = {
+    NEO: 'c56f33fc6ecfcd0c225c4ab356fee59390af8560be0e930faebe74a6daff7c9b',
+    GAS: '602c79718b16e442de58778e148d0b1084e3b2dffd5de6b7b16cee7969282de7'
+}
+
+/* eslint-disable camelcase */
+const parseTxHistory = rawTxs => {
+    const txs = []
+    const lastItem = rawTxs.length - 1
+    rawTxs.forEach((tx, ind) => {
+        let change
+        if (ind !== lastItem) {
+            const prevTx = rawTxs[ind + 1]
+            const currBal = flattenBalance(tx.balance)
+            const prevBal = flattenBalance(prevTx.balance)
+            change = {
+                NEO: (currBal.NEO?currBal.NEO:0) - (prevBal.NEO?prevBal.NEO:0),
+                GAS: (currBal.GAS?currBal.GAS:0) - (prevBal.GAS?prevBal.GAS:0)
+            }
+        } else {
+            let symbol = tx.asset_moved === ASSET_ID.NEO ? 'NEO' : 'GAS'
+            change = { [symbol]: tx.amount_moved }
+        }
+        txs.push({
+            txid: tx.txid,
+            blockHeight: tx.block_height,
+            change
+        })
+    })
+    return txs
+}
+/* eslint-enable camelcase */
+
+const flattenBalance = balance => {
+    return balance.reduce((bal, asset) => {
+        bal[asset.asset] = asset.amount
+        return bal
+    }, {})
 }
 
 export function getClaimAmounts(address) {

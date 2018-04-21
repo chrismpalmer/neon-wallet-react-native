@@ -73,7 +73,7 @@ class WalletInfo extends React.Component {
                 <View style={styles.content}>
                     <View style={styles.coinCountView}>
                         <Text style={styles.coinCountLabel}>NEO</Text>
-                        <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
+                        <Text style={[neoBalance>9999?styles.coinCountValueSmall:styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
                             {neoBalance}
                         </Text>
                     </View>
@@ -82,7 +82,7 @@ class WalletInfo extends React.Component {
                     </View>
                     <View style={styles.coinCountView}>
                         <Text style={styles.coinCountLabel}>GAS</Text>
-                        <Text style={[styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
+                        <Text style={[gasBalance>9999?styles.coinCountValueSmall:styles.coinCountValue, this.props.pendingBlockConfirm ? styles.pendingConfirm : null]}>
                             {gasBalance}
                         </Text>
                     </View>
@@ -140,6 +140,10 @@ const styles = StyleSheet.create({
     },
     coinCountValue: {
         fontSize: 40,
+        fontWeight: '200'
+    },
+    coinCountValueSmall: {
+        fontSize: 20,
         fontWeight: '200'
     },
     refreshButtonView: {

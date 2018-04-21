@@ -15,6 +15,7 @@ export function isBlockedByTransportSecurityPolicy(error) {
 }
 
 export function nDecimalsNoneZero(input, n) {
+    if ( input == null ) return 0;
     // return n decimals places, only if non-zero
     const decimalPlaces = Math.pow(10, n)
     return Math.round(input * decimalPlaces) / decimalPlaces

@@ -10,14 +10,23 @@ class TransactionHistory extends React.Component {
 
     _renderRow(item) {
         const tx = item.item
+        console.log(tx);
         return (
             <View style={styles.txRow}>
                 <View style={styles.txId}>
-                    <Text>{tx.txid.slice(0, 15)}..</Text>
+                    <Text style={styles.txText}>{tx.txid.slice(0, 20)}..</Text>
                 </View>
                 <View style={styles.txValue}>
-                    <Text style={styles.bigText}>{nDecimalsNoneZero(tx.amount, 6)}</Text>
-                    <Text style={styles.bigText}>{tx.type}</Text>
+                    <View style={{flexDirection:'column'}}>
+                        <View style={{flexDirection:'row',justifyContent:'flex-end',}}>
+                            <Text style={styles.bigText}>{nDecimalsNoneZero(tx.change.NEO, 0)}</Text>
+                            <Text style={styles.bigText}>NEO</Text>
+                        </View>
+                        <View style={{flexDirection:'row',justifyContent:'flex-end',}}>
+                            <Text style={styles.bigText}>{nDecimalsNoneZero(tx.change.GAS, 8)}</Text>
+                            <Text style={styles.bigText}>GAS</Text>
+                        </View>
+                    </View>
                 </View>
             </View>
         )
@@ -52,17 +61,17 @@ const styles = StyleSheet.create({
     txRow: {
         flexDirection: 'row',
         marginHorizontal: 30,
-        height: 48
+        // height: 48
     },
     txId: {
         flex: 1,
         flexDirection: 'row',
         justifyContent: 'flex-start',
-        alignItems: 'center'
+        alignItems: 'center',
     },
     txText: {
-        fontSize: 10,
-        fontFamily: 'courier new'
+        fontSize: 12,
+        fontWeight: '200',
     },
     txValue: {
         flexDirection: 'row',
@@ -72,7 +81,7 @@ const styles = StyleSheet.create({
     bigText: {
         fontSize: 20,
         marginLeft: 5,
-        fontFamily: 'courier'
+        fontWeight: '200',
     }
 })
 

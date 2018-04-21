@@ -95,16 +95,9 @@ export default function order(state = {}, action) {
             }
         }
         case actions.wallet.GET_TRANSACTION_HISTORY_SUCCESS: {
-            let txs = action.transactions.map(tx => {
-                if (tx.neo_sent == true) {
-                    return { type: 'NEO', amount: tx.NEO, txid: tx.txid, block_index: tx.block_index }
-                } else {
-                    return { type: 'GAS', amount: tx.GAS, txid: tx.txid, block_index: tx.block_index }
-                }
-            })
             return {
                 ...state,
-                transactions: txs
+                transactions: action.transactions
             }
         }
         case actions.wallet.GET_AVAILABLE_GAS_CLAIM_SUCCESS:

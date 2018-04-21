@@ -234,6 +234,7 @@ export function* sendAssetFlow(args) {
     const FIVE_SECONDS = 5000
 
     try {
+        console.log('in the send flow');
         yield call(sendAsset, toAddress, wallet.wif, assetType, amount)
 
         if (toAddress === wallet.address) {
@@ -259,8 +260,8 @@ export function* sendAssetFlow(args) {
                 'error',
                 'Error',
                 'Transaction sending failed.' +
-                    `${blockedDomain}` +
-                    ' not allowed by iOS App Transport Security policy. Please contact the wallet author.'
+                `${blockedDomain}` +
+                ' not allowed by iOS App Transport Security policy. Please contact the wallet author.'
             )
         } else {
             DropDownHolder.getDropDown().alertWithType('error', 'Send', 'Transaction sending failed')
